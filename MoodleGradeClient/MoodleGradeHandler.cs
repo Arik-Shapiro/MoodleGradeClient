@@ -40,7 +40,7 @@ namespace MoodleGradeClient
             {
                 return null;
             }
-            var attempts = await GetQuizAttempts(relevantQuiz.Id, userId);
+            var attempts = await GetQuizAttempts(relevantQuiz.Id, userId, token);
             var relevantAttempt = attempts?.QuizzAttempts?.FirstOrDefault();
             if(relevantAttempt == null)
             {
@@ -50,11 +50,11 @@ namespace MoodleGradeClient
             return new QuizGrade(relevantQuiz.Id, relevantQuiz.Name, grade, relevantQuiz.SumGrades, relevantAttempt.SumGrades);
         }
 
-        private async Task<QuizAttemptsModel> GetQuizAttempts(int quizId, int userId)
+        private async Task<QuizAttemptsModel> GetQuizAttempts(int quizId, int userId, TokenModel token)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/webservice/rest/server.php?quizid={quizId}&userid={userId}&moodlewsrestformat=json&wsfunction=mod_quiz_get_user_attempts&wstoken=28cf67ef575ce87c1854089ae8b02a61");
+                var response = await _httpClient.GetAsync($"/webservice/rest/server.php?quizid={quizId}&userid={userId}&moodlewsrestformat=json&wsfunction=mod_quiz_get_user_attempts&wstoken={token.Token}");
                 var jsonString = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<QuizAttemptsModel>(jsonString);
             }
