@@ -36,27 +36,23 @@ namespace MoodleGradeClient
                 return null;
             }
             var userId = await GetUserId(token);
-            if(userId == -1)
+            if(!userId.HasValue)
             {
                 return null;
             }
-            var attempts = await GetQuizAttempts(relevantQuiz.Id, userId, token);
-            var relevantAttempt = attempts?.QuizzAttempts?.FirstOrDefault();
-            if(relevantAttempt == null)
-            {
-                return null;
-            }
-            var grade = (relevantAttempt.SumGrades / relevantQuiz.SumGrades) * 100;
-            return new QuizGrade(relevantQuiz.Id, relevantQuiz.Name, grade, relevantQuiz.SumGrades, relevantAttempt.SumGrades);
+            var quizAttempt = await GetQuizAttempts(relevantQuiz.Id, userId.Value, token);
+            return quizAttempt == null 
+                ? null 
+                : new QuizGrade(relevantQuiz.Id, relevantQuiz.Name, quizAttempt.Grade);
         }
 
-        private async Task<QuizAttemptsModel> GetQuizAttempts(int quizId, int userId, TokenModel token)
+        private async Task<QuizAttemptModel> GetQuizAttempts(int quizId, int userId, TokenModel token)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/webservice/rest/server.php?quizid={quizId}&userid={userId}&moodlewsrestformat=json&wsfunction=mod_quiz_get_user_attempts&wstoken={token.Token}");
+                var response = await _httpClient.GetAsync($"/webservice/rest/server.php?wstoken={token.Token}&quizid={quizId}&userid={userId}&moodlewsrestformat=json&wsfunction=mod_quiz_get_user_best_grade");
                 var jsonString = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<QuizAttemptsModel>(jsonString);
+                return JsonConvert.DeserializeObject<QuizAttemptModel>(jsonString);
             }
             catch
             {
@@ -65,19 +61,19 @@ namespace MoodleGradeClient
             }
         }
 
-        private async Task<int> GetUserId(TokenModel token)
+        private async Task<int?> GetUserId(TokenModel token)
         {
             try
             {
                 var response = await _httpClient.GetAsync($"/webservice/rest/server.php?moodlewsrestformat=json&wsfunction=core_webservice_get_site_info&wstoken={token.Token}");
                 var jsonString = await response.Content.ReadAsStringAsync();
                 var res = (JObject)JsonConvert.DeserializeObject(jsonString);
-                return res.Value<int>("userId");
+                return res?.Value<int>("userid");
             }
             catch
             {
                 Console.WriteLine("Failed to get user id");
-                return -1;
+                return null;
             }
         }
 

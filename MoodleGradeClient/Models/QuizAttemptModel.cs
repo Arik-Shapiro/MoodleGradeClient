@@ -2,20 +2,15 @@
 
 namespace MoodleGradeClient
 {
-    public class QuizAttemptsModel
-    {
-        [JsonProperty("attempts")]
-        public QuizAttemptModel[] QuizzAttempts { get; set; }
-    }
     public class QuizAttemptModel
     {
-        [JsonProperty("id", Required = Required.Always)]
-        public int Id { get; set; }
+        [JsonProperty("hasgrade", Required = Required.Always)]
+        public bool HasGrade { get; set; }
 
-        [JsonProperty("quiz", Required = Required.Always)]
-        public int QuizId { get; set; }
+        [JsonProperty("warnings", Required = Required.Always)]
+        public int[] Warnings { get; set; }
 
-        [JsonProperty("sumgrades", Required = Required.Always)]
-        public double SumGrades { get; set; }
+        [JsonProperty("grade", Required = Required.Always)]
+        public double Grade { get; set; }
     }
 }
